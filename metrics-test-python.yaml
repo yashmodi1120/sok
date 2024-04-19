@@ -1,0 +1,81 @@
+apiVersion: "sparkoperator.k8s.io/v1beta2"
+kind: SparkApplication
+metadata:
+  name: spark-test-python
+  namespace: spark-test
+spec:
+  type: Python
+  pythonVersion: "3"
+  mode: cluster
+  image: "inmobidev.azurecr.io/inmobi-platforms/platform-spark-3.4.1-docker:Yashmodi-branch-a0ddaef-4"
+  imagePullPolicy: Always
+  timeToLiveSeconds: 600
+  mainApplicationFile: "abfs://spark-kubernetes@epsilondevstorage.dfs.core.windows.net/metrics-test/word_count_length.py"
+  sparkVersion: "3.4.1"
+  restartPolicy:
+    type: Never
+  driver:
+    cores: 1
+    memory: 512m
+    labels:
+      version: 3.4.1
+    serviceAccount: spark-driver-svcacc
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: sparkpool
+              operator: In
+              values:
+              - driverpool
+    tolerations:
+      - key: "sparkpool"
+        operator: "Equal"
+        value: "driverpool"
+        effect: "NoSchedule"
+  executor:
+    cores: 1
+    instances: 1
+    memory: 512m
+    labels:
+      version: 3.4.1
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: sparkpool
+              operator: In
+              values:
+              - executorpool
+    tolerations:
+      - key: "sparkpool"
+        operator: "Equal"
+        value: "executorpool"
+        effect: "NoSchedule"
+      - key: "kubernetes.azure.com/scalesetpriority"
+        operator: "Equal"
+        value: "spot"
+        effect: "NoSchedule"
+  sparkConf:
+    spark.hadoop.fs.azure.account.key.epsilondevstorage.dfs.core.windows.net: auxWAY9T1g1kObJOMqa6IDfx7dpv2QUpxDUk080UXKNp2VFCED0itOD+efZ0YE9jZJG5rqJHGek3dh7amt2R9g==
+    spark.kubernetes.driver.label.monitored-by: "prometheus"
+    spark.ui.prometheus.enabled: "true"
+    spark.executor.processTreeMetrics.enabled: "true"
+    spark.metrics.conf.driver.sink.prometheusServlet.class: "org.apache.spark.metrics.sink.PrometheusServlet"
+    spark.metrics.conf.executors.sink.prometheusServlet.class: "org.apache.spark.metrics.sink.PrometheusServlet"
+    spark.metrics.conf.master.sink.prometheusServlet.path: "/metrics/master/prometheus"
+    spark.eventLog.enabled: "true"
+    spark.eventLog.dir: "abfs://spark-kubernetes@epsilondevstorage.dfs.core.windows.net/logs"
+    spark.kubernetes.driver.annotation.prometheus.io/scrape: "true"
+    spark.kubernetes.driver.annotation.prometheus.io/path: /metrics/executors/prometheus/
+    spark.kubernetes.driver.annotation.prometheus.io/port: "4040"
+    spark.metrics.conf.applications.sink.prometheusServlet.path: "/metrics/applications/prometheus"
+    spark.metrics.conf.driver.sink.prometheusServlet.path: "/metrics/prometheus"
+    spark.metrics.conf.executors.sink.prometheusServlet.path: "/metrics/executors/prometheus"
+    spark.kubernetes.driver.service.label.prometheus: "enabled"
+    spark.kubernetes.driver.service.annotation.prometheus.io/scrape: "true"
+    spark.kubernetes.driver.service.annotation.prometheus.io/path: /metrics/prometheus/
+    spark.kubernetes.driver.service.annotation.prometheus.io/port: "4040"
+    
