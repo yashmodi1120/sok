@@ -26,7 +26,7 @@ dag = DAG(
 submit = SparkKubernetesOperator(
     task_id='spark_pi_submit',
     namespace="spark-test",
-    application_file="example_spark_kubernetes_operator_pi.yaml",
+    application_file="metrics-test-python.yaml",
     kubernetes_conn_id="kubernetes_in_cluster",
     dag=dag,
 )
