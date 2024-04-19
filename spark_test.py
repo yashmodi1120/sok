@@ -27,7 +27,7 @@ submit = SparkKubernetesOperator(
     task_id='spark_pi_submit',
     namespace="spark-test",
     application_file="metrics-test-python.yaml",
-    kubernetes_conn_id="kubernetes_in_cluster",
+    kubernetes_conn_id="key_vault_conn",
     dag=dag,
 )
 
